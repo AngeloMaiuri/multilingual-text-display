@@ -1,0 +1,23 @@
+.wmtd-wrap {
+    max-width: 800px;
+}
+.wmtd-wrap .form-table th {
+    width: 150px;
+}
+.wmtd-wrap textarea {
+    width: 100%;
+    max-width: 600px;
+}
+.wmtd-wrap .wp-list-table {
+    margin-top: 20px;
+}
+@media (max-width: 782px) {
+    .wmtd-wrap .form-table th,
+    .wmtd-wrap .form-table td {
+        display: block;
+        width: 100%;
+    }
+    .wmtd-wrap textarea {
+        max-width: 100%;
+    }
+}
