@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Multilingual Text Display
-Version: 1.0.0
+Version: 1.0.5
 Description: Display multilingual text via shortcode using WPML.
 Author: Angelo Maiuri
 Text Domain: wp-multilingual-text-display
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define constants
-define('WMTD_VERSION', '1.0.0');
+define('WMTD_VERSION', '1.0.5');
 define('WMTD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WMTD_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -104,7 +104,8 @@ function wmtd_settings_page() {
             if (!isset($languages[$lang_code]) || empty(trim($text))) {
                 continue;
             }
-            $text = sanitize_textarea_field($text);
+            // Store raw text without sanitization (admin-only access)
+            $text = stripslashes($text);
             if ($entry_id) {
                 // Update or insert
                 $wpdb->replace($table_name, [
@@ -151,9 +152,9 @@ function wmtd_settings_page() {
             <table class="form-table">
                 <?php foreach (icl_get_languages() as $lang) : ?>
                     <tr>
-                        <th><label for="wmtd_text_<?php echo esc_attr($lang['code']); ?>"><?php echo esc_html($lang['native_name']); ?></label></th>
+                        <th><label for="wmtd_text_<?php echo esc_attr($lang['code']); ?>"><?php echo esc_html($lang['name']); ?></label></th>
                         <td>
-                            <textarea name="wmtd_text[<?php echo esc_attr($lang['code']); ?>]" id="wmtd_text_<?php echo esc_attr($lang['code']); ?>" rows="4" cols="50"><?php echo isset($edit_texts[$lang['code']]) ? esc_textarea($edit_texts[$lang['code']]->text_content) : ''; ?></textarea>
+                            <textarea name="wmtd_text[<?php echo esc_attr($lang['code']); ?>]" id="wmtd_text_<?php echo esc_attr($lang['code']); ?>" rows="4" cols="50"><?php echo isset($edit_texts[$lang['code']]) ? $edit_texts[$lang['code']]->text_content : ''; ?></textarea>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -201,7 +202,7 @@ function wmtd_shortcode($atts) {
 
     $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : get_option('WPLANG', 'en_US');
     $text = $wpdb->get_var($wpdb->prepare(
-        "SELECT text_content FROM $table_name WHERE entry_id = %d AND language_code = %s",
+        "SELECT text_content FROM $table_name WHERE entry_id = %d AND $lang_code = %s",
         $atts['id'], $lang
     ));
 
@@ -242,7 +243,8 @@ function wmtd_ajax_save_text() {
         if (!isset($languages[$lang_code]) || empty(trim($text))) {
             continue;
         }
-        $text = sanitize_textarea_field($text);
+        // Store raw text without sanitization (admin-only access)
+        $text = stripslashes($text);
         if ($entry_id) {
             $wpdb->replace($table_name, [
                 'entry_id' => $entry_id,
